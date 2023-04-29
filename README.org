@@ -1,4 +1,23 @@
 #+BIND: org-export-use-babel nil
 #+TITLE: README
 #+AUTHOR: Paul Lodder
-Code to suggest a track based on Bandcamp user's wishlist and bc-explorer.app
+* intro
+Code to suggest a track based on Bandcamp user's wishlist and
+https://bc-explorer.app
+* setting up
+Make a =virtualenv=, I used python3.10, and inside it install requirements:
+#+BEGIN_SRC sh
+pip install -r requirements.txt
+#+END_SRC
+and then:
+#+BEGIN_SRC sh
+pip install -e .
+#+END_SRC
+* usage
+#+BEGIN_SRC python
+from src.bandcamp_suggestor import BandcampSuggestor
+bc_suggestor = BandcampSuggestor('<bandcamp_username>')
+bc_suggestor.generate_suggestion()
+#+END_SRC
+will scrape the wishlist items from bandcamp, use a randomly picked one to feed
+to bc-explorer, and then randomly picks a suggestion by bc-explorer.
