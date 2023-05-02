@@ -1,7 +1,8 @@
 import random
 import time
-
+import json
 import requests
+
 from bs4 import BeautifulSoup
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -9,6 +10,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from seleniumwire import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+
+# from pyvirtualdisplay import Display
 
 
 class BandcampSuggestor:
@@ -39,13 +42,14 @@ class BandcampSuggestor:
         wishlist_item = self._get_random_wishlist_item()
         item_url = wishlist_item["item_url"]
 
-        tracks, albums = self._get_suggestions_for(item_url)
-        return self._get_random_track(tracks)
+        tracks, artists, stream_urls = self._get_suggestions_for(item_url)
+        return tracks[0], artists[0], stream_urls[0]
 
     def _fetch_wishlist_html(self, username):
         """Fetch wishlist HTML for the given username."""
         return BeautifulSoup(
-            requests.get(f"https://bandcamp.com/{username}/wishlist").content
+            requests.get(f"https://bandcamp.com/{username}/wishlist").content,
+            features="html.parser",
         )
 
     def _extract_older_than_token(self, html):
@@ -85,14 +89,20 @@ class BandcampSuggestor:
         print("Waiting for bc-explorer suggestions to load...")
         iframes = self._wait_and_scrape_iframes(driver)
         driver.quit()
-        return self._extract_tracks_and_albums(iframes)
+        return self._extract_tracks_artists_and_stream_urls(iframes)
 
     def _init_selenium_driver(self):
         """Initialize Selenium WebDriver with Chrome options."""
         chrome_options = Options()
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--disable-gpu")
-        return webdriver.Chrome(options=chrome_options)
+        chrome_options.add_argument("--enable-audio")
+        # display = Display(visible=0, size=(800, 600))
+        # display.start()
+        return webdriver.Chrome(
+            "/usr/lib/chromium-browser/chromedriver",
+            options=chrome_options,
+        )
 
     def _navigate_and_submit_url(self, driver, url):
         """Navigate to the website and submit the given URL."""
@@ -120,19 +130,60 @@ class BandcampSuggestor:
             EC.visibility_of_all_elements_located((By.XPATH, "//iframe"))
         )
         time.sleep(1)  # make sure all iframes are loaded
-        return BeautifulSoup(driver.page_source).select("iframe")
+        return BeautifulSoup(
+            driver.page_source, features="html.parser"
+        ).select("iframe")
 
-    def _extract_tracks_and_albums(self, iframes):
-        """Extract track and album URLs from the iframes."""
-        hrefs = [iframe.select_one("a").get("href") for iframe in iframes]
-        tracks, albums = [], []
-        for href in hrefs:
-            if "/track" in href:
-                tracks.append(href)
-            elif "/album" in href:
-                albums.append(href)
-        return tracks, albums
+    def _extract_tracks_artists_and_stream_urls(self, iframes):
+        """Extract stream_urls, track and artist names from the iframes."""
+        frames = [iframe.get("src") for iframe in iframes]
+        stream_urls = []
+        tracks = []
+        artists = []
+        for frame in frames:
+            response = requests.get(frame)
+            player = BeautifulSoup(response.content, features="html.parser")
+            player_data = json.loads(
+                player.find("script", attrs={"data-player-data": True}).get(
+                    "data-player-data"
+                )
+            )
+            if self._is_album_dict(player_data):
+                featured_track = self._get_featured_track_from_album(
+                    player_data["tracks"], player_data["featured_track_id"]
+                )
+            else:
+                featured_track = player_data["tracks"][0]
 
-    def _get_random_track(self, tracks):
-        """Return a random track from the list of tracks."""
-        return random.choice(tracks)
+            # breakpoint()
+            try:
+                track_title = featured_track["title"]
+                track_artist = featured_track["artist"]
+                stream_url = featured_track["file"]["mp3-128"]
+            except TypeError:
+                continue
+
+            tracks.append(track_title)
+            artists.append(track_artist)
+            stream_urls.append(stream_url)
+        # tracks, albums = [], []
+        # for href in hrefs:
+        #     if "/track" in href:
+        #         tracks.append(href)
+        #     elif "/album" in href:
+        #         albums.append(href)
+        return tracks, artists, stream_urls
+
+    def _is_album_dict(self, player_data):
+        """Returns a boolean indicating if the player plays is an album"""
+        return "featured_track_id" in player_data
+
+    def _get_featured_track_from_album(self, track_list, featured_track_id):
+        """Returns the featured track from the album tracks"""
+        for track in track_list:
+            if track["id"] == featured_track_id:
+                return track
+
+    # def _get_random_track(self, tracks):
+    #     """Return a random track from the list of tracks."""
+    #     return random.choice(tracks)
