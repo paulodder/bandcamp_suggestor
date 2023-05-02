@@ -35,15 +35,23 @@ class BandcampSuggestor:
                 self.fan_id, self.older_than_token
             )
 
-    def generate_suggestion(self):
-        """Generate a random track suggestion."""
+    def get_random_wishlist_item(self):
+        """Retrieve a random wishlist item from the bandcamp wishlist"""
         self.scrape_wishlist_items()
 
         wishlist_item = self._get_random_wishlist_item()
+
+        item_track_name = wishlist_item["item_title"]
+        item_band_name = wishlist_item["band_name"]
         item_url = wishlist_item["item_url"]
 
-        tracks, artists, stream_urls = self._get_suggestions_for(item_url)
-        return tracks[0], artists[0], stream_urls[0]
+        return item_track_name, item_band_name, item_url
+
+    def generate_suggestions(self, bandcamp_url):
+        """Generate track suggestions based on a bandcamp url"""
+
+        tracks, artists, stream_urls = self._get_suggestions_for(bandcamp_url)
+        return tracks, artists, stream_urls
 
     def _fetch_wishlist_html(self, username):
         """Fetch wishlist HTML for the given username."""
@@ -155,7 +163,6 @@ class BandcampSuggestor:
             else:
                 featured_track = player_data["tracks"][0]
 
-            # breakpoint()
             try:
                 track_title = featured_track["title"]
                 track_artist = featured_track["artist"]
