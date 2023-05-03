@@ -45,7 +45,14 @@ class BandcampSuggestor:
         item_band_name = wishlist_item["band_name"]
         item_url = wishlist_item["item_url"]
 
-        return item_track_name, item_band_name, item_url
+        tralbum_id = wishlist_item["tralbum_id"]
+        embed_url = self._construct_embed_url_from_tralbumid(tralbum_id)
+        player_data = self._extract_player_data_from_embed_url(embed_url)
+        _, _, stream_url = self._extract_title_artist_stream_url_from_data(
+            player_data
+        )
+
+        return item_track_name, item_band_name, item_url, stream_url
 
     def generate_suggestions(self, bandcamp_url):
         """Generate track suggestions based on a bandcamp url"""
@@ -144,42 +151,57 @@ class BandcampSuggestor:
 
     def _extract_tracks_artists_and_stream_urls(self, iframes):
         """Extract stream_urls, track and artist names from the iframes."""
-        frames = [iframe.get("src") for iframe in iframes]
+        embed_urls = [iframe.get("src") for iframe in iframes]
         stream_urls = []
         tracks = []
         artists = []
-        for frame in frames:
-            response = requests.get(frame)
-            player = BeautifulSoup(response.content, features="html.parser")
-            player_data = json.loads(
-                player.find("script", attrs={"data-player-data": True}).get(
-                    "data-player-data"
-                )
-            )
-            if self._is_album_dict(player_data):
-                featured_track = self._get_featured_track_from_album(
-                    player_data["tracks"], player_data["featured_track_id"]
-                )
-            else:
-                featured_track = player_data["tracks"][0]
+        for embed_url in embed_urls:
+            player_data = self._extract_player_data_from_embed_url(embed_url)
 
-            try:
-                track_title = featured_track["title"]
-                track_artist = featured_track["artist"]
-                stream_url = featured_track["file"]["mp3-128"]
-            except TypeError:
+            (
+                track_title,
+                track_artist,
+                stream_url,
+            ) = self._extract_title_artist_stream_url_from_data(player_data)
+
+            if track_title is None:
                 continue
 
             tracks.append(track_title)
             artists.append(track_artist)
             stream_urls.append(stream_url)
-        # tracks, albums = [], []
-        # for href in hrefs:
-        #     if "/track" in href:
-        #         tracks.append(href)
-        #     elif "/album" in href:
-        #         albums.append(href)
+
         return tracks, artists, stream_urls
+
+    def _extract_title_artist_stream_url_from_data(self, player_data):
+        if self._is_album_dict(player_data):
+            featured_track = self._get_featured_track_from_album(
+                player_data["tracks"], player_data["featured_track_id"]
+            )
+        else:
+            featured_track = player_data["tracks"][0]
+
+        try:
+            track_title = featured_track["title"]
+            track_artist = featured_track["artist"]
+            stream_url = featured_track["file"]["mp3-128"]
+        except TypeError:
+            return None, None, None
+
+        return track_title, track_artist, stream_url
+
+    def _extract_player_data_from_embed_url(self, embed_url):
+        response = requests.get(embed_url)
+        player = BeautifulSoup(response.content, features="html.parser")
+        player_data = json.loads(
+            player.find("script", attrs={"data-player-data": True}).get(
+                "data-player-data"
+            )
+        )
+        return player_data
+
+    def _construct_embed_url_from_tralbumid(self, tralbum_id):
+        return f"https://bandcamp.com/EmbeddedPlayer/album={tralbum_id}/"
 
     def _is_album_dict(self, player_data):
         """Returns a boolean indicating if the player plays is an album"""

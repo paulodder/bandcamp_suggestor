@@ -1,14 +1,12 @@
-from setuptools import setup, find_packages
+import setuptools
 
-setup(
-    name="my_project",
-    version="0.1.0",
-    packages=find_packages(where="src"),
-    package_dir={"": "src"},
-    install_requires=[
-        # add any required dependencies here
-    ],
-    entry_points={
-        # add any entry points here, such as console scripts or gui scripts
-    },
+
+setuptools.setup(
+    name="src",
+    version="0.0.1",
+    author="",
+    author_email="",
+    packages=setuptools.find_packages("src/"),
+    package_dir={"src": "src"},
+    description="utils et al.",
 )

@@ -1,6 +1,7 @@
 import vlc
 import time
 from gtts import gTTS
+from decouple import config
 
 
 class MediaPlayer:
@@ -24,8 +25,9 @@ class MediaPlayer:
 
     def play_text(self, text, sleep=True):
         tts = gTTS(text)
-        tts.save("voice.mp3")
-        self._create_and_set_media("voice.mp3")
+        voice_fname = config("PROJECT_DIR") + "voice.mp3"
+        tts.save(voice_fname)
+        self._create_and_set_media(voice_fname)
         self.play(sleep=sleep)
 
     def _create_and_set_media(self, url):
