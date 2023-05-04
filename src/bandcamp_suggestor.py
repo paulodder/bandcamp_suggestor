@@ -44,13 +44,17 @@ class BandcampSuggestor:
         item_track_name = wishlist_item["item_title"]
         item_band_name = wishlist_item["band_name"]
         item_url = wishlist_item["item_url"]
+        item_featured_track = None
 
         tralbum_id = wishlist_item["tralbum_id"]
         embed_url = self._construct_embed_url_from_tralbumid(tralbum_id)
         player_data = self._extract_player_data_from_embed_url(embed_url)
-        _, _, stream_url = self._extract_title_artist_stream_url_from_data(
-            player_data
-        )
+
+        stream_url = None
+        if player_data is not None:
+            _, _, stream_url = self._extract_title_artist_stream_url_from_data(
+                player_data
+            )
 
         return item_track_name, item_band_name, item_url, stream_url
 
@@ -193,11 +197,14 @@ class BandcampSuggestor:
     def _extract_player_data_from_embed_url(self, embed_url):
         response = requests.get(embed_url)
         player = BeautifulSoup(response.content, features="html.parser")
-        player_data = json.loads(
-            player.find("script", attrs={"data-player-data": True}).get(
-                "data-player-data"
+        try:
+            player_data = json.loads(
+                player.find("script", attrs={"data-player-data": True}).get(
+                    "data-player-data"
+                )
             )
-        )
+        except AttributeError:
+            return None
         return player_data
 
     def _construct_embed_url_from_tralbumid(self, tralbum_id):
