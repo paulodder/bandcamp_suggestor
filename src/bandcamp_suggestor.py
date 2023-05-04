@@ -163,6 +163,9 @@ class BandcampSuggestor:
         for embed_url in embed_urls:
             player_data = self._extract_player_data_from_embed_url(embed_url)
 
+            if player_data is None:
+                continue
+
             (
                 track_title,
                 track_artist,
