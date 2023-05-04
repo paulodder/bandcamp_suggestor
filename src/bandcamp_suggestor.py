@@ -114,8 +114,9 @@ class BandcampSuggestor:
         """Initialize Selenium WebDriver with Chrome options."""
         chrome_options = Options()
         chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--enable-audio")
+        # chrome_options.add_argument("--enable-audio")
         # display = Display(visible=0, size=(800, 600))
         # display.start()
         return webdriver.Chrome(

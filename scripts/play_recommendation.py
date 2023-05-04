@@ -1,13 +1,12 @@
 import time
+import requests
 from decouple import config
 
 from src.bandcamp_suggestor import BandcampSuggestor
 from src.media_player import MediaPlayer
 
-player = MediaPlayer()
-bc_suggestor = BandcampSuggestor(config("BANDCAMP_USER"))
 
-while True:
+def main(player, bc_suggestor):
     (
         source_track,
         source_band,
@@ -41,7 +40,6 @@ while True:
         zip(tracks, artists, stream_urls)
     ):
         player.pause()
-        time.sleep(1)
         if i == 0:
             if source_stream_url is None:
                 player.play_text(
@@ -60,3 +58,32 @@ while True:
         player.play_from_url(stream_url)
 
         player.play_text(f"that was, {track}, by {artist}")
+
+    player.play_text(
+        f"That concludes all recommendations based on {source_track}, by {source_band}."
+    )
+
+
+def connection_is_active():
+    attempts = 0
+    while attempts < 20:
+        try:
+            requests.head("http://www.google.com/", timeout=1)
+            return True
+        except requests.ConnectionError:
+            time.sleep(1)
+
+    return False
+
+
+if __name__ == "__main__":
+
+    if not connection_is_active():
+        print("ERROR: No internet connection was established")
+        quit()
+
+    player = MediaPlayer()
+    bc_suggestor = BandcampSuggestor(config("BANDCAMP_USER"))
+
+    while True:
+        main(player, bc_suggestor)
