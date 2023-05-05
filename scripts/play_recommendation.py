@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     player = MediaPlayer()
     bc_suggestor = BandcampSuggestor(config("BANDCAMP_USER"))
-    buttons = RPButtons([18])
+    buttons = RPButtons([18, 23])
 
     while True:
         main(player, bc_suggestor, buttons)
