@@ -3,3 +3,4 @@
 *.egg-info
 /voice.mp3
 /logs/
+/mp3/voice.mp3
