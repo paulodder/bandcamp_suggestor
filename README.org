@@ -21,6 +21,7 @@ https://bc-explorer.app
    #+BEGIN_EXAMPLE sh
    PROJECT_DIR=/path/to/bandcamp_suggestor/ # the path to this directory
    BANDCAMP_USER=username # your bandcamp username
+   RASPBERRY_PI_USER=lucw # your raspberry pi username (optional)
    #+END_EXAMPLE
 
    To access these variables in python code run:
@@ -36,3 +37,13 @@ bc_suggestor.generate_suggestions()
 #+END_SRC
 will scrape the wishlist items from bandcamp, use a randomly picked one to feed
 to bc-explorer, and then returns suggestions from bc-explorer.
+
+To run the radio on raspberry pi startup do the following.
+1. Give this file execute permissions
+   chmod +x path/to/raspberry_pi_on_startup.sh
+2. Run the following on startup of raspberry pi
+   (https://unix.stackexchange.com/questions/166473/debian-how-to-run-a-script-on-startup-as-soon-as-there-is-an-internet-connecti):
+   #+BEGIN_SRC sh
+   source /path/to/.env # to get $PROJECT_DIR and $RASPBERRY_PI_USER
+   bash -c "${PROJECT_DIR}/scripts/raspberry_pi_on_startup.sh > /path/to/run.log 2>&1"
+   #+END_SRC
