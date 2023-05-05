@@ -1,7 +1,7 @@
 import time
-import requests
 from decouple import config
 
+from src.utils import connection_is_active
 from src.pi_buttons import RPButtons
 from src.bandcamp_suggestor import BandcampSuggestor
 from src.media_player import MediaPlayer
@@ -100,18 +100,6 @@ def await_player_and_monitor_return_request(player, buttons):
         if player.media_has_ended():
             return False
         time.sleep(0.1)
-
-
-def connection_is_active():
-    attempts = 0
-    while attempts < 20:
-        try:
-            requests.head("http://www.google.com/", timeout=1)
-            return True
-        except requests.ConnectionError:
-            time.sleep(1)
-
-    return False
 
 
 if __name__ == "__main__":
