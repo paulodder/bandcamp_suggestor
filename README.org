@@ -44,6 +44,6 @@ To run the radio on raspberry pi startup do the following.
 2. Run the following on startup of raspberry pi
    (https://unix.stackexchange.com/questions/166473/debian-how-to-run-a-script-on-startup-as-soon-as-there-is-an-internet-connecti):
    #+BEGIN_SRC sh
-   source /path/to/.env # to get $PROJECT_DIR and $RASPBERRY_PI_USER
-   bash -c "${PROJECT_DIR}/scripts/raspberry_pi_on_startup.sh > /path/to/run.log 2>&1"
+   export $(cat /path/to/.env | xargs) # to get $PROJECT_DIR and $RASPBERRY_PI_USER
+   bash -c "${PROJECT_DIR}scripts/raspberry_pi_on_startup.sh > /path/to/run.log 2>&1" # Start the radio and log
    #+END_SRC
