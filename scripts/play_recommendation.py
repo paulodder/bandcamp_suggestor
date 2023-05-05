@@ -7,7 +7,30 @@ from src.bandcamp_suggestor import BandcampSuggestor
 from src.media_player import MediaPlayer
 
 
-def main(player, bc_suggestor, buttons):
+def main():
+    try:
+        player = MediaPlayer()
+
+        if not connection_is_active():
+            print("ERROR: No internet connection was established")
+            player.play_from_url(config("PROJECT_DIR") + "mp3/no_internet.mp3")
+            player.await_end()
+            quit()
+
+        bc_suggestor = BandcampSuggestor(config("BANDCAMP_USER"))
+        buttons = RPButtons([18, 23])
+
+        while True:
+            play_radio_for_random_wishlist_item(player, bc_suggestor, buttons)
+
+    except Exception as e:
+        print(e)
+        player.play_from_url(config("PROJECT_DIR") + "mp3/error.mp3")
+        player.await_end()
+        return
+
+
+def play_radio_for_random_wishlist_item(player, bc_suggestor, buttons):
     (
         source_track,
         source_band,
@@ -17,7 +40,7 @@ def main(player, bc_suggestor, buttons):
 
     print(f"Searching based on {source_track} - {source_band}")
     player.play_text(
-        f"Searching for new boemketel hits based on your bandcamp wishlist item, {source_track}, by {source_band}.",
+        f"Searching for new boemketel hits based on your bandcamp wishlist item: {source_track}, by {source_band}.",
     )
     if await_player_and_monitor_return_request(player, buttons):
         return
@@ -36,9 +59,6 @@ def main(player, bc_suggestor, buttons):
             return
 
         player.play_from_url(source_stream_url)
-
-    # some elevator music for the wait
-    # player.play_from_url("elevator_music.mp3", sleep=False)
 
     tracks, artists, stream_urls = bc_suggestor.generate_suggestions(
         source_url
@@ -68,7 +88,9 @@ def main(player, bc_suggestor, buttons):
         print("playing", track, "-", artist)
         player.play_from_url(stream_url)
 
-        if await_player_and_monitor_return_request(player, buttons):
+        if await_player_and_monitor_return_request(
+            player, buttons, f"{track} by {artist}"
+        ):
             return
 
         player.play_text(f"that was, {track}, by {artist}")
@@ -81,7 +103,7 @@ def main(player, bc_suggestor, buttons):
     player.await_end()
 
 
-def await_player_and_monitor_return_request(player, buttons):
+def await_player_and_monitor_return_request(player, buttons, play_msg=None):
     while True:
         button_pressed = buttons.button_pressed()
         if button_pressed is not False:
@@ -90,6 +112,9 @@ def await_player_and_monitor_return_request(player, buttons):
                 player.pause()
             elif button_pressed == 0 and not player.is_playing():
                 print("Resuming playback")
+                if play_msg:
+                    player.play_text(play_msg)
+                    player.await_end()
                 player.play()
             elif button_pressed == 1:
                 print("Next wishlist item")
@@ -103,14 +128,5 @@ def await_player_and_monitor_return_request(player, buttons):
 
 
 if __name__ == "__main__":
-
-    if not connection_is_active():
-        print("ERROR: No internet connection was established")
-        quit()
-
-    player = MediaPlayer()
-    bc_suggestor = BandcampSuggestor(config("BANDCAMP_USER"))
-    buttons = RPButtons([18, 23])
-
     while True:
-        main(player, bc_suggestor, buttons)
+        main()

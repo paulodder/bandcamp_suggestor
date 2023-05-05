@@ -21,7 +21,7 @@ class MediaPlayer:
 
     def play_text(self, text):
         tts = gTTS(text)
-        voice_fname = config("PROJECT_DIR") + "voice.mp3"
+        voice_fname = config("PROJECT_DIR") + "mp3/voice.mp3"
         tts.save(voice_fname)
         self._create_and_set_media(voice_fname)
         self.play()
@@ -32,7 +32,7 @@ class MediaPlayer:
     def is_playing(self):
         return self.player.is_playing()
 
-    def await_end():
+    def await_end(self):
         while not self.media_has_ended():
             time.sleep(1)
         return True
