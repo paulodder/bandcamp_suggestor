@@ -15,6 +15,8 @@ echo "-- INITIALIZING --"
 echo "** Pulling latest changes from bandcamp_suggestor"
 say "Updating"
 sudo "${PROJECT_DIR}bandcamp/bin/python3" "${PROJECT_DIR}scripts/wait_for_network.py"
+sudo find "${PROJECT_DIR}.git/objects/" -size 0 -exec rm -f {} \;
+sudo -u $RASPBERRY_PI_USER -i git -C $PROJECT_DIR fetch origin
 sudo -u $RASPBERRY_PI_USER -i git -C $PROJECT_DIR pull origin main
 
 # Run the script

@@ -18,7 +18,10 @@ def main():
             quit()
 
         bc_suggestor = BandcampSuggestor(config("BANDCAMP_USER"))
-        buttons = RPButtons([18, 23])
+        buttons = RPButtons([23, 24])
+
+        player.play_text(f"Welcome to Boemketel Radio.")
+        player.await_end()
 
         while True:
             play_radio_for_random_wishlist_item(player, bc_suggestor, buttons)
