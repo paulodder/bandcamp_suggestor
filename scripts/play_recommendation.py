@@ -113,8 +113,9 @@ def await_player_and_monitor_return_request(player, buttons, play_msg=None):
             elif button_pressed == 0 and not player.is_playing():
                 print("Resuming playback")
                 if play_msg:
-                    player.play_text(play_msg)
-                    player.await_end()
+                    player2 = MediaPlayer()
+                    player2.play_text(play_msg)
+                    player2.await_end()
                 player.play()
             elif button_pressed == 1:
                 print("Next wishlist item")
