@@ -20,7 +20,7 @@ def main():
         bc_suggestor = BandcampSuggestor(config("BANDCAMP_USER"))
         buttons = RPButtons([23, 24])
 
-        player.play_text(f"Welcome to Boemketel Radio.")
+        player.play_text(f"Welcome to Boomkètèl Radio.")
         player.await_end()
 
         while True:
@@ -43,7 +43,7 @@ def play_radio_for_random_wishlist_item(player, bc_suggestor, buttons):
 
     print(f"Searching based on {source_track} - {source_band}")
     player.play_text(
-        f"Searching for new boemketel hits based on your bandcamp wishlist item: {source_track}, by {source_band}.",
+        f"Searching for new boomkètèl hits based on your bandcamp wishlist item: {source_track}, by {source_band}.",
     )
     if await_player_and_monitor_return_request(player, buttons):
         return
