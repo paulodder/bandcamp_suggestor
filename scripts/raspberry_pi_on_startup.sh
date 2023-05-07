@@ -23,3 +23,7 @@ sudo -u $RASPBERRY_PI_USER -i git -C $PROJECT_DIR pull origin main
 echo "** Running bandcamp_suggestor"
 say "Starting radio"
 sudo "${PROJECT_DIR}bandcamp/bin/python3" "${PROJECT_DIR}scripts/play_recommendation.py" &
+
+# To stop the radio from ssh:
+# ps ax | grep bandcamp_suggestor to find the process_id
+# sudo kill <process_id>
