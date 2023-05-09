@@ -21,7 +21,7 @@ https://bc-explorer.app
    #+BEGIN_EXAMPLE sh
    PROJECT_DIR=/path/to/bandcamp_suggestor/ # the path to this directory
    BANDCAMP_USER=username # your bandcamp username
-   RASPBERRY_PI_USER=lucw # your raspberry pi username (optional)
+   RASPBERRY_PI_USER=username # your raspberry pi username (optional)
    #+END_EXAMPLE
 
    To access these variables in python code run:
