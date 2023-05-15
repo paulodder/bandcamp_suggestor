@@ -18,6 +18,7 @@ sudo "${PROJECT_DIR}bandcamp/bin/python3" "${PROJECT_DIR}scripts/wait_for_networ
 sudo find "${PROJECT_DIR}.git/objects/" -size 0 -exec rm -f {} \; # Fixes git if broken
 sudo -u $RASPBERRY_PI_USER -i git -C $PROJECT_DIR fetch origin # Fixes git if broken
 sudo -u $RASPBERRY_PI_USER -i git -C $PROJECT_DIR pull origin main
+sudo "${PROJECT_DIR}bandcamp/bin/python3 -m pip install -r ${PROJECT_DIR}requirements.txt"
 
 # Run the script
 echo "** Running bandcamp_suggestor"

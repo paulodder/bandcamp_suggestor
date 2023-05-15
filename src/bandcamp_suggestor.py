@@ -2,6 +2,9 @@ import random
 import time
 import json
 import requests
+import re
+import numpy as np
+import platform
 
 from bs4 import BeautifulSoup
 from selenium.webdriver.chrome.options import Options
@@ -11,7 +14,7 @@ from seleniumwire import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-# from pyvirtualdisplay import Display
+CTRL_KEY = Keys.COMMAND if platform.system() == "Darwin" else Keys.CONTROL
 
 
 class BandcampSuggestor:
@@ -61,8 +64,51 @@ class BandcampSuggestor:
     def generate_suggestions(self, bandcamp_url):
         """Generate track suggestions based on a bandcamp url"""
 
-        tracks, artists, stream_urls = self._get_suggestions_for(bandcamp_url)
-        return tracks, artists, stream_urls
+        (
+            tracks,
+            artists,
+            bandcamp_urls,
+            stream_urls,
+        ) = self._get_suggestions_for(bandcamp_url)
+        return tracks, artists, bandcamp_urls, stream_urls
+
+    def fetch_important_description(self, bandcamp_url):
+        """Gets first 'important' paragraph from the description of a release"""
+        full_description = self._fetch_full_description(bandcamp_url)
+        if full_description is None:
+            return None
+        return self._extract_most_important_paragraph_from_description(
+            full_description
+        )
+
+    def _fetch_full_description(self, bandcamp_url):
+        """Get the full description based on a bandcamp url"""
+        response = requests.get(bandcamp_url)
+        bc_page = BeautifulSoup(response.content, features="html.parser")
+        info = json.loads(
+            bc_page.find("script", attrs={"type": "application/ld+json"}).text
+        )
+        if self._is_bandcamp_track_link(bandcamp_url):
+            return self._fetch_full_description(
+                info["inAlbum"]["albumRelease"][0]["@id"]
+            )
+        return info.get("description")
+
+    def _is_bandcamp_track_link(self, href):
+        """Returns if the given href is a bandcamp track link"""
+        return "/track" in href
+
+    def _extract_most_important_paragraph_from_description(self, description):
+        """Extract the first important paragraph from the full the description text"""
+        paragraphs = np.array(re.split(r"\r\n ?\r\n", description))
+        if len(paragraphs) > 1:
+            p_scores = np.array(
+                [len(p) / len(re.findall(r"[.,:\n]", p)) for p in paragraphs]
+            )
+            p_relevant = paragraphs[p_scores > p_scores.mean()]
+            return p_relevant[0]
+        else:
+            return paragraphs[0]
 
     def _fetch_wishlist_html(self, username):
         """Fetch wishlist HTML for the given username."""
@@ -108,7 +154,7 @@ class BandcampSuggestor:
         print("Waiting for bc-explorer suggestions to load...")
         iframes = self._wait_and_scrape_iframes(driver)
         driver.quit()
-        return self._extract_tracks_artists_and_stream_urls(iframes)
+        return self._extract_tracks_artists_and_urls(iframes)
 
     def _init_selenium_driver(self):
         """Initialize Selenium WebDriver with Chrome options."""
@@ -116,9 +162,6 @@ class BandcampSuggestor:
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-gpu")
-        # chrome_options.add_argument("--enable-audio")
-        # display = Display(visible=0, size=(800, 600))
-        # display.start()
         return webdriver.Chrome(
             "/usr/lib/chromium-browser/chromedriver",
             options=chrome_options,
@@ -136,7 +179,7 @@ class BandcampSuggestor:
             )
         )
         input_bar.click()
-        input_bar.send_keys(Keys.CONTROL, "a")
+        input_bar.send_keys(CTRL_KEY, "a")
         input_bar.send_keys(Keys.BACKSPACE)
         input_bar.send_keys(url)
         submit_button = driver.find_element(
@@ -154,13 +197,15 @@ class BandcampSuggestor:
             driver.page_source, features="html.parser"
         ).select("iframe")
 
-    def _extract_tracks_artists_and_stream_urls(self, iframes):
-        """Extract stream_urls, track and artist names from the iframes."""
-        embed_urls = [iframe.get("src") for iframe in iframes]
-        stream_urls = []
+    def _extract_tracks_artists_and_urls(self, iframes):
+        """Extract track name, artist name, bandcamp and stream urls from iframes."""
         tracks = []
         artists = []
-        for embed_url in embed_urls:
+        bandcamp_urls = []
+        stream_urls = []
+        for iframe in iframes:
+            embed_url = iframe.get("src")
+            bandcamp_url = iframe.select_one("a").get("href")
             player_data = self._extract_player_data_from_embed_url(embed_url)
 
             if player_data is None:
@@ -177,9 +222,10 @@ class BandcampSuggestor:
 
             tracks.append(track_title)
             artists.append(track_artist)
+            bandcamp_urls.append(bandcamp_url)
             stream_urls.append(stream_url)
 
-        return tracks, artists, stream_urls
+        return tracks, artists, bandcamp_urls, stream_urls
 
     def _extract_title_artist_stream_url_from_data(self, player_data):
         if self._is_album_dict(player_data):

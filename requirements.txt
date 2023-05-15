@@ -24,6 +24,7 @@ ipython==8.13.1
 jedi==0.18.2
 kaitaistruct==0.10
 matplotlib-inline==0.1.6
+numpy==1.24.3
 outcome==1.2.0
 packaging==23.1
 parso==0.8.3
