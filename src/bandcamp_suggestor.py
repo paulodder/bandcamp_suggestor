@@ -103,7 +103,10 @@ class BandcampSuggestor:
         paragraphs = np.array(re.split(r"\r\n ?\r\n", description))
         if len(paragraphs) > 1:
             p_scores = np.array(
-                [len(p) / len(re.findall(r"[.,:\n]", p)) for p in paragraphs]
+                [
+                    len(p) / min(1, len(re.findall(r"[.,:\n]", p)))
+                    for p in paragraphs
+                ]
             )
             p_relevant = paragraphs[p_scores > p_scores.mean()]
             return p_relevant[0]
