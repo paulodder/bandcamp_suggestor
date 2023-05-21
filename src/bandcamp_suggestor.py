@@ -113,6 +113,10 @@ class BandcampSuggestor:
         else:
             return paragraphs[0]
 
+    def _score_paragraph(self, p):
+        """Whack estimator based on the amount of newlines and punctuation marks"""
+        return len(p) / max(1, len(re.findall(r"[.,:\n]", p)))
+
     def _fetch_wishlist_html(self, username):
         """Fetch wishlist HTML for the given username."""
         return BeautifulSoup(
