@@ -35,7 +35,7 @@ from src.bandcamp_suggestor import BandcampSuggestor
 bc_suggestor = BandcampSuggestor('<bandcamp_username>')
 bc_suggestor.generate_suggestions()
 #+END_SRC
-will scrape the wishlist items from bandcamp, use a randomly picked one to feed
+will scrape the collection and wishlist items from bandcamp, use a randomly picked one to feed
 to bc-explorer, and then returns suggestions from bc-explorer.
 
 To run the radio on raspberry pi startup do the following.
