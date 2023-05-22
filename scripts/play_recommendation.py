@@ -53,7 +53,7 @@ def play_radio_for_wishlist_item(
     player, bc_suggestor, buttons=None, wishlist_url=None
 ):
     if wishlist_url is None:
-        if random.random() > 0.8:
+        if random.random() > 0.9:
             fetch_fn = bc_suggestor.get_random_collection_item
             source_text = "your bandcamp purchase"
         else:
