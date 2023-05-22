@@ -1,4 +1,7 @@
 import time
+import traceback
+import sys
+import random
 from decouple import config
 
 from src.utils import connection_is_active
@@ -10,10 +13,15 @@ try:
 
     IS_RASPBERYY_PI = True
 except (ImportError, RuntimeError):
+    import keyboard
+
+    # TODO: fix so it only works when wanted
+    # print("press p to pause/play, press n for next wishlist item")
+
     IS_RASPBERYY_PI = False
 
 
-def main():
+def main(bandcamp_url=None):
     try:
         player = MediaPlayer()
 
@@ -30,26 +38,45 @@ def main():
         player.await_end()
 
         while True:
-            play_radio_for_random_wishlist_item(player, bc_suggestor, buttons)
+            play_radio_for_wishlist_item(
+                player, bc_suggestor, buttons, bandcamp_url
+            )
 
     except Exception as e:
-        print(e)
+        print(traceback.format_exc())
         player.play_from_url(config("PROJECT_DIR") + "mp3/error.mp3")
         player.await_end()
         return
 
 
-def play_radio_for_random_wishlist_item(player, bc_suggestor, buttons=None):
-    (
-        source_track,
-        source_band,
-        source_url,
-        source_stream_url,
-    ) = bc_suggestor.get_random_wishlist_item()
+def play_radio_for_wishlist_item(
+    player, bc_suggestor, buttons=None, wishlist_url=None
+):
+    if wishlist_url is None:
+        if random.random() > 0.8:
+            fetch_fn = bc_suggestor.get_random_collection_item
+            source_text = "your bandcamp purchase"
+        else:
+            fetch_fn = bc_suggestor.get_random_wishlist_item
+            source_text = "your bandcamp wishlist item"
+        (
+            source_track,
+            source_band,
+            source_url,
+            source_stream_url,
+        ) = fetch_fn()
+    else:
+        (
+            source_track,
+            source_band,
+            source_stream_url,
+        ) = bc_suggestor.get_title_artist_stream_url_from_url(wishlist_url)
+        source_url = wishlist_url
+        source_text = ""
 
     print(f"Searching based on {source_track} - {source_band}")
     player.play_text(
-        f"Searching for new boomkètèl hits based on your bandcamp wishlist item: {source_track}, by {source_band}.",
+        f"Searching for new boomkètèl hits based on {source_text}: {source_track}, by {source_band}.",
     )
     if await_player_and_monitor_return_request(player, buttons):
         return
@@ -122,34 +149,59 @@ def play_radio_for_random_wishlist_item(player, bc_suggestor, buttons=None):
     player.await_end()
 
 
+def monitor_keyboard():
+    # TODO: fix so it only works when wanted
+    # if keyboard.is_pressed("p"):
+    #     return 0
+    # if keyboard.is_pressed("n"):
+    #     return 1
+    return False
+
+
 def await_player_and_monitor_return_request(
     player, buttons=None, play_msg=None
 ):
+    if IS_RASPBERYY_PI:
+        input_monitor_fn = buttons.button_pressed
+    else:
+        input_monitor_fn = monitor_keyboard
+
     while True:
-        if IS_RASPBERYY_PI:
-            button_pressed = buttons.button_pressed()
-            if button_pressed is not False:
-                if button_pressed == 0 and player.is_playing():
-                    print("Pausing playback")
-                    player.pause()
-                elif button_pressed == 0 and not player.is_playing():
-                    print("Resuming playback")
-                    if play_msg:
-                        player2 = MediaPlayer()
-                        player2.play_text(play_msg)
-                        player2.await_end()
-                    player.play()
-                elif button_pressed == 1:
-                    print("Next wishlist item")
-                    player.pause()
-                    return True
-                time.sleep(0.5)
+        button_pressed = input_monitor_fn()
+        if button_pressed is not False:
+            if button_pressed == 0 and player.is_playing():
+                print("Pausing playback")
+                player.pause()
+            elif button_pressed == 0 and not player.is_playing():
+                print("Resuming playback")
+                if play_msg:
+                    player2 = MediaPlayer()
+                    player2.play_text(play_msg)
+                    player2.await_end()
+                player.play()
+            elif button_pressed == 1:
+                print("Next wishlist player")
+                item.pause()
+                return True
+            time.sleep(0.5)
 
         if player.media_has_ended():
             return False
         time.sleep(0.1)
 
 
+def get_args():
+    if len(sys.argv) > 1:
+        if "bandcamp.com" in sys.argv[1]:
+            return {"bandcamp_url": sys.argv[1]}
+        else:
+            raise Exception(
+                "please provide a valid bandcamp album or track link"
+            )
+    return {"bandcamp_url": None}
+
+
 if __name__ == "__main__":
+    args = get_args()
     while True:
-        main()
+        main(args["bandcamp_url"])

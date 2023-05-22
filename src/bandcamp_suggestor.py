@@ -5,6 +5,7 @@ import requests
 import re
 import numpy as np
 import platform
+import time
 
 from bs4 import BeautifulSoup
 from selenium.webdriver.chrome.options import Options
@@ -22,13 +23,14 @@ class BandcampSuggestor:
         self.username = username
         self.fan_id = None
         self.wishlist_items = None
+        self.collection_items = None
         self._initialize_fan_id_and_older_than_token()
 
     def _initialize_fan_id_and_older_than_token(self):
         """Initialize fan_id and older_than_token as class attributes."""
-        html = self._fetch_wishlist_html(self.username)
-        self.older_than_token = self._extract_older_than_token(html)
-        self.fan_id = self._extract_fan_id(html)
+        html_wishlist = self._fetch_wishlist_html(self.username)
+        self.older_than_token = self._generate_older_than_token()
+        self.fan_id = self._extract_fan_id(html_wishlist)
 
     def scrape_wishlist_items(self):
         """Scrape wishlist items if not already scraped."""
@@ -38,18 +40,40 @@ class BandcampSuggestor:
                 self.fan_id, self.older_than_token
             )
 
+    def scrape_collection_items(self):
+        """Scrape wishlist items if not already scraped."""
+        if self.collection_items is None:
+            print("Scraping collection items...")
+            self.collection_items = self._fetch_collection_items(
+                self.fan_id, self.older_than_token
+            )
+
     def get_random_wishlist_item(self):
         """Retrieve a random wishlist item from the bandcamp wishlist"""
         self.scrape_wishlist_items()
 
         wishlist_item = self._get_random_wishlist_item()
 
-        item_track_name = wishlist_item["item_title"]
-        item_band_name = wishlist_item["band_name"]
-        item_url = wishlist_item["item_url"]
-        item_featured_track = None
+        return self._get_track_artist_bandcamp_url_stream_url_for_item(
+            wishlist_item
+        )
 
-        tralbum_id = wishlist_item["tralbum_id"]
+    def get_random_collection_item(self):
+        """Retrieve a random collection item from the bandcamp wishlist"""
+        self.scrape_collection_items()
+
+        collection_item = self._get_random_collection_item()
+
+        return self._get_track_artist_bandcamp_url_stream_url_for_item(
+            collection_item
+        )
+
+    def _get_track_artist_bandcamp_url_stream_url_for_item(self, item):
+        item_track_name = item["item_title"]
+        item_band_name = item["band_name"]
+        item_url = item["item_url"]
+
+        tralbum_id = item["tralbum_id"]
         embed_url = self._construct_embed_url_from_tralbumid(tralbum_id)
         player_data = self._extract_player_data_from_embed_url(embed_url)
 
@@ -81,6 +105,18 @@ class BandcampSuggestor:
             full_description
         )
 
+    def get_title_artist_stream_url_from_url(self, bandcamp_url):
+        response = requests.get(bandcamp_url)
+        bs = BeautifulSoup(response.content, features="html.parser")
+        bs_script = bs.find("script", attrs={"data-tralbum": True})
+        data_band = json.loads(bs_script.get("data-band"))
+        data_tralbum = json.loads(bs_script.get("data-tralbum"))
+        track = data_tralbum.get("trackinfo")[0]
+        title = track["title"]
+        artist = data_band["name"]
+        stream_url = track["file"]["mp3-128"]
+        return title, artist, stream_url
+
     def _fetch_full_description(self, bandcamp_url):
         """Get the full description based on a bandcamp url"""
         response = requests.get(bandcamp_url)
@@ -102,12 +138,7 @@ class BandcampSuggestor:
         """Extract the first important paragraph from the full the description text"""
         paragraphs = np.array(re.split(r"\r\n ?\r\n", description))
         if len(paragraphs) > 1:
-            p_scores = np.array(
-                [
-                    len(p) / min(1, len(re.findall(r"[.,:\n]", p)))
-                    for p in paragraphs
-                ]
-            )
+            p_scores = np.array([self._score_paragraph(p) for p in paragraphs])
             p_relevant = paragraphs[p_scores > p_scores.mean()]
             return p_relevant[0]
         else:
@@ -124,12 +155,9 @@ class BandcampSuggestor:
             features="html.parser",
         )
 
-    def _extract_older_than_token(self, html):
-        """Extract older_than_token from wishlist HTML."""
-        lis = html.select(
-            ".collection-item-container.track_play_hilite.initial-batch"
-        )
-        return lis[0].get("data-token")
+    def _generate_older_than_token(self):
+        """Generate an older_than_token."""
+        return f"{int(time.time())}::a::"
 
     def _extract_fan_id(self, html):
         """Extract fan_id from wishlist HTML."""
@@ -150,9 +178,26 @@ class BandcampSuggestor:
         )
         return resp.json()["items"]
 
+    def _fetch_collection_items(self, fan_id, older_than_token):
+        """Fetch collection items using fan_id and older_than_token."""
+        resp = requests.post(
+            "https://bandcamp.com/api/fancollection/1/collection_items",
+            headers={"User-Agent": "Mozilla/5.0"},
+            json={
+                "fan_id": fan_id,
+                "older_than_token": older_than_token,
+                "count": 2000,
+            },
+        )
+        return resp.json()["items"]
+
     def _get_random_wishlist_item(self):
         """Return a random wishlist item."""
         return random.choice(self.wishlist_items)
+
+    def _get_random_collection_item(self):
+        """Return a random collection item."""
+        return random.choice(self.collection_items)
 
     def _get_suggestions_for(self, url):
         """Get track and album suggestions for the given URL."""
