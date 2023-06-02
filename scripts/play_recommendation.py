@@ -181,7 +181,7 @@ def await_player_and_monitor_return_request(
                 player.play()
             elif button_pressed == 1:
                 print("Next wishlist player")
-                item.pause()
+                player.pause()
                 return True
             time.sleep(0.5)
 
