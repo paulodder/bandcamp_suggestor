@@ -21,3 +21,16 @@ class RPButtons:
             if GPIO.input(port) == False:
                 return button
         return False
+
+    def button_pressed_blocking(self, timeout=1, update_rate=0.1):
+        """Returns the port index if a button is pressed, False otherwise"""
+        elapsed = 0
+        while True:
+            for button, port in self.buttons__ports:
+                if GPIO.input(port) == False:
+                    return button
+            time.sleep(update_rate)
+
+            elapsed += update_rate
+            if elapsed >= timeout:
+                return False

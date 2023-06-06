@@ -20,7 +20,8 @@ h2==4.1.0
 hpack==4.0.0
 hyperframe==6.0.1
 idna==3.4
-ipython==8.13.1
+inputimeout==1.0.4
+ipython==8.12.2
 jedi==0.18.2
 kaitaistruct==0.10
 matplotlib-inline==0.1.6
@@ -57,8 +58,8 @@ tqdm==4.65.0
 traitlets==5.9.0
 trio==0.22.0
 trio-websocket==0.10.2
-typing-extensions==4.5.0
 urllib3==1.26.15
 wcwidth==0.2.6
+webdriver-manager==3.8.6
 wsproto==1.2.0
 zstandard==0.21.0

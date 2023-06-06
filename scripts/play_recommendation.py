@@ -2,22 +2,22 @@ import time
 import traceback
 import sys
 import random
-from decouple import config
 
+# import threading
+# from inputimeout import inputimeout, TimeoutOccurred
+from decouple import config
+from functools import partial
 from src.utils import connection_is_active
 from src.bandcamp_suggestor import BandcampSuggestor
 from src.media_player import MediaPlayer
+from src.inputtimeout import inputtimeout, TimeoutOccurred
 
 try:
     from src.pi_buttons import RPButtons
 
     IS_RASPBERYY_PI = True
 except (ImportError, RuntimeError):
-    import keyboard
-
-    # TODO: fix so it only works when wanted
-    # print("press p to pause/play, press n for next wishlist item")
-
+    print("press p to pause/play, press n for next wishlist item")
     IS_RASPBERYY_PI = False
 
 
@@ -149,13 +149,16 @@ def play_radio_for_wishlist_item(
     player.await_end()
 
 
-def monitor_keyboard():
-    # TODO: fix so it only works when wanted
-    # if keyboard.is_pressed("p"):
-    #     return 0
-    # if keyboard.is_pressed("n"):
-    #     return 1
-    return False
+def monitor_keyboard(timeout=1):
+    try:
+        kb_press = inputtimeout(prompt="", timeout=timeout)
+        if kb_press == "p":
+            return 0
+        if kb_press == "n":
+            return 1
+        return False
+    except TimeoutOccurred:
+        return False
 
 
 def await_player_and_monitor_return_request(
@@ -164,7 +167,7 @@ def await_player_and_monitor_return_request(
     if IS_RASPBERYY_PI:
         input_monitor_fn = buttons.button_pressed
     else:
-        input_monitor_fn = monitor_keyboard
+        input_monitor_fn = partial(monitor_keyboard, timeout=0.5)
 
     while True:
         button_pressed = input_monitor_fn()
@@ -188,6 +191,19 @@ def await_player_and_monitor_return_request(
         if player.media_has_ended():
             return False
         time.sleep(0.1)
+
+
+# def beat_thread():
+#     beat_thread.stop = False  # Monkey-patched flag
+#     frequency, duration = 2500, 10
+
+#     def run():  # Closure
+#         while not beat_thread.stop:  # Run until flag is True
+#             # winsound.Beep(frequency, duration)
+#             print("beep")
+#             time.sleep(beat_length - duration / 1000)
+
+#     threading.Thread(target=run).start()
 
 
 def get_args():
