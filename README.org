@@ -38,11 +38,21 @@ bc_suggestor.generate_suggestions()
 will scrape the collection and wishlist items from bandcamp, use a randomly picked one to feed
 to bc-explorer, and then returns suggestions from bc-explorer.
 
-To run the radio on raspberry pi startup do the following.
-1. Give this file execute permissions
+To run a radio based on your bandcamp wishlist locally run the following:
+#+BEGIN_SRC sh
+python scripts/play_recommendation.py
+#+END_SRC
+
+To run the radio on raspberry pi startup do the following:
+1. Install `RPi.GPIO` on the pi
+   #+BEGIN_SRC sh
+   pip install RPi.GPIO==0.7.1
+   #+END_SRC
+2. Give this file execute permissions
+   #+BEGIN_SRC sh
    chmod +x path/to/raspberry_pi_on_startup.sh
-2. Run the following on startup of raspberry pi
-   (https://unix.stackexchange.com/questions/166473/debian-how-to-run-a-script-on-startup-as-soon-as-there-is-an-internet-connecti):
+   #+END_SRC
+3. Run the following on startup of raspberry pi (https://unix.stackexchange.com/questions/166473/debian-how-to-run-a-script-on-startup-as-soon-as-there-is-an-internet-connecti):
    #+BEGIN_SRC sh
    export $(cat /path/to/.env | xargs) # to get $PROJECT_DIR and $RASPBERRY_PI_USER
    bash -c "${PROJECT_DIR}scripts/raspberry_pi_on_startup.sh > /path/to/run.log 2>&1" # Start the radio and log
