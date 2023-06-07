@@ -5,7 +5,12 @@
 Code to suggest a track based on Bandcamp user's wishlist and
 https://bc-explorer.app
 * setting up
-1. Make a =virtualenv=, I used python3.9, and inside it install requirements \\
+1. Create a =virtualenv= (I used Python 3.9) and activate it
+   #+BEGIN_SRC sh
+   virtualenv <env_name>
+   source <env_name>/bin/activate
+   #+END_SRC
+2. Install the requirements \\
    #+BEGIN_SRC sh
    pip install -r requirements.txt
    #+END_SRC
@@ -15,7 +20,7 @@ https://bc-explorer.app
     pip install -e .
    #+END_SRC
 
-2. Create a =.env= file \\
+3. Create a =.env= file \\
    A =.env= file is used to keep track of machine-specific variables. Create a
    =.env= in the root of this project with the following values set:
    #+BEGIN_EXAMPLE sh
