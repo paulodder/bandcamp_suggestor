@@ -23,19 +23,24 @@ except (ImportError, RuntimeError):
 
 def main(bandcamp_url=None):
     try:
-        player = MediaPlayer()
+        player = {
+            "text": MediaPlayer(),
+            "music": MediaPlayer(),
+        }
 
         if not connection_is_active():
             print("ERROR: No internet connection was established")
-            player.play_from_url(config("PROJECT_DIR") + "mp3/no_internet.mp3")
-            player.await_end()
+            player["text"].play_from_url(
+                config("PROJECT_DIR") + "mp3/no_internet.mp3"
+            )
+            player["text"].await_end()
             quit()
 
         bc_suggestor = BandcampSuggestor(config("BANDCAMP_USER"))
         buttons = RPButtons([23, 24]) if IS_RASPBERYY_PI else None
 
-        player.play_text(f"Welcome to Boomkètèl Radio.")
-        player.await_end()
+        player["text"].play_text(f"Welcome to Boomkètèl Radio.")
+        player["text"].await_end()
 
         while True:
             play_radio_for_wishlist_item(
@@ -44,14 +49,16 @@ def main(bandcamp_url=None):
 
     except Exception as e:
         print(traceback.format_exc())
-        player.play_from_url(config("PROJECT_DIR") + "mp3/error.mp3")
-        player.await_end()
+        player["text"].play_from_url(config("PROJECT_DIR") + "mp3/error.mp3")
+        player["text"].await_end()
         return
 
 
 def play_radio_for_wishlist_item(
     player, bc_suggestor, buttons=None, wishlist_url=None
 ):
+    pre_start_volume = 70
+
     if wishlist_url is None:
         if random.random() > 0.9:
             fetch_fn = bc_suggestor.get_random_collection_item
@@ -75,26 +82,28 @@ def play_radio_for_wishlist_item(
         source_text = ""
 
     print(f"Searching based on {source_track} - {source_band}")
-    player.play_text(
+    if source_stream_url is not None:
+        player["music"].play_from_url(source_stream_url, pre_start_volume)
+
+    player["text"].play_text(
         f"Searching for new boomkètèl hits based on {source_text}: {source_track}, by {source_band}.",
     )
-    if await_player_and_monitor_return_request(player, buttons):
+    if await_player_and_monitor_return_request(player["text"], buttons):
         return
 
     if source_stream_url is None:
-        player.play_text(
-            f"Please get me a drink while I think in silence",
+        player["text"].play_text(
+            f"Collecting bangèrs",
         )
-        if await_player_and_monitor_return_request(player, buttons):
-            return
     else:
-        player.play_text(
-            f"Let me remind you while I think..",
-        )
-        if await_player_and_monitor_return_request(player, buttons):
-            return
+        player["music"].set_volume(100)
+    # else:
+    #     player["text"].play_text(
+    #         f"Let me remind you while I think..",
+    #     )
 
-        player.play_from_url(source_stream_url)
+    # if await_player_and_monitor_return_request(player["text"], buttons):
+    #     returns
 
     (
         tracks,
@@ -106,7 +115,6 @@ def play_radio_for_wishlist_item(
     for i, (track, artist, bandcamp_url, stream_url) in enumerate(
         zip(tracks, artists, bandcamp_urls, stream_urls)
     ):
-        player.pause()
 
         description = bc_suggestor.fetch_important_description(bandcamp_url)
         print("track:", track)
@@ -126,27 +134,34 @@ def play_radio_for_wishlist_item(
         else:
             read_text = f"We continue the party with {track}, by {artist}"
 
-        player.play_text(read_text)
-
-        if await_player_and_monitor_return_request(player, buttons):
-            return
+        player["text"].pause()
+        player["music"].pause()
+        # if await_player_and_monitor_return_request(player, buttons):
+        #     returns
 
         print("playing")
-        player.play_from_url(stream_url)
+        player["music"].play_from_url(stream_url, pre_start_volume)
+        player["text"].play_text(read_text)
 
         if await_player_and_monitor_return_request(
-            player, buttons, f"{track} by {artist}"
+            player["text"], buttons, f"{track} by {artist}"
+        ):
+            return
+        player["music"].set_volume(100)
+
+        if await_player_and_monitor_return_request(
+            player["music"], buttons, f"{track} by {artist}"
         ):
             return
 
-        player.play_text(f"that was, {track}, by {artist}")
-        if await_player_and_monitor_return_request(player, buttons):
+        player["text"].play_text(f"that was, {track}, by {artist}")
+        if await_player_and_monitor_return_request(player["text"], buttons):
             return
 
-    player.play_text(
+    player["text"].play_text(
         f"That concludes all recommendations based on {source_track}, by {source_band}."
     )
-    player.await_end()
+    player["text"].await_end()
 
 
 def monitor_keyboard(timeout=1):

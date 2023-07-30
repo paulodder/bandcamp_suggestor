@@ -15,7 +15,18 @@ class MediaPlayer:
     def pause(self):
         self.player.pause()
 
-    def play_from_url(self, url):
+    def get_volume(self):
+        return self.player.audio_get_volume()
+
+    def set_volume(self, volume):
+        if volume < 0 or volume > 100:
+            raise ValueError("Volume should be between 0 and 100")
+        self.player.audio_set_volume(volume)
+
+    def play_from_url(self, url, volume=100):
+        if volume != self.get_volume():
+            self.set_volume(volume)
+
         self._create_and_set_media(url)
         self.play()
 
