@@ -1,7 +1,9 @@
 /.env
 *.pyc
 *.egg-info
-/voice.mp3
+mp3/slices/
+mp3/tmp/
 /logs/
 /mp3/voice.mp3
 *.DS_Store
+*bkradio*.mp3

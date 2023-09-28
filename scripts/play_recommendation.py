@@ -49,6 +49,7 @@ def main(bandcamp_url=None):
 
     except Exception as e:
         print(traceback.format_exc())
+        player["music"].pause()
         player["text"].play_from_url(config("PROJECT_DIR") + "mp3/error.mp3")
         player["text"].await_end()
         return
@@ -116,11 +117,12 @@ def play_radio_for_wishlist_item(
         zip(tracks, artists, bandcamp_urls, stream_urls)
     ):
 
-        description = bc_suggestor.fetch_important_description(bandcamp_url)
+        bc_info = bc_suggestor.fetch_info_from_bancamp_url(bandcamp_url)
+        description = bc_info["description"]
         print("track:", track)
         print("artist:", artist)
         print("bandcamp_url:", bandcamp_url)
-        if description is not None:
+        if description is not None and len(description.split()) <= 75:
             print(f"reading description")
             print(description)
             read_text = (
