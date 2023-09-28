@@ -113,6 +113,7 @@ class MediaPlayer:
             next_url = self.queue.pop(0)
             self.on_media_start()
             self.play_from_url(next_url)
+            print("queued:", len(self.queue), "slices")
             return
         print("No songs in queue")
 

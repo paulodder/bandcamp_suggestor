@@ -36,8 +36,8 @@ class RadioPlayer:
         self.slice_dir = Path(config("MP3_DIR")) / "slices"
         self.slice_dir.mkdir(exist_ok=True, parents=True)
         self.mp_queue = mp_queue
-        # self.bm = ButtonMonitor
-        # self.bm = ButtonMonitor(self.print_something, "command+alt+p")
+
+        self.buttons = RPButtons([24, 23]) if IS_RASPBERYY_PI else None
 
     async def start_radio(self):
         # Start queue task
@@ -54,12 +54,6 @@ class RadioPlayer:
 
         # Start cleanup process
         cleanup_task = asyncio.create_task(self.continuous_cleanup())
-
-        # info task
-        # info_task = asyncio.create_task(self.get_info())
-
-        # Monitor task
-        # self.bm.start_monitoring()
 
         button_task = asyncio.create_task(self.monitor_buttons())
 
@@ -87,7 +81,10 @@ class RadioPlayer:
 
     async def monitor_buttons(self):
         if IS_RASPBERYY_PI:
-            input_monitor_fn = buttons.button_pressed
+            input_monitor_fn = self.buttons.button_pressed
+            print(
+                "press 1st button to send song info to phone, press 2nd for next wishlist item"
+            )
         else:
             print(
                 "press i to send song info to phone, press n for next wishlist item"
@@ -205,7 +202,7 @@ class RadioPlayer:
 def run_generate_radio(bc_user, mp_queue):
     try:
         rg = RadioGenerator(bc_user)
-        asyncio.run(rg.continuous_generate_radio(mp_queue, min_slices=7))
+        asyncio.run(rg.continuous_generate_radio(mp_queue, min_slices=20))
     except Exception as e:
         error_callback(e)
 

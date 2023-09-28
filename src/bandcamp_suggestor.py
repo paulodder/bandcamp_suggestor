@@ -8,6 +8,7 @@ import platform
 import time
 
 from src.utils import remove_links
+from decouple import config
 from bs4 import BeautifulSoup
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -267,7 +268,7 @@ class BandcampSuggestor:
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-gpu")
         return webdriver.Chrome(
-            "/usr/local/bin/chromedriver",
+            config("CHROMEDRIVER"),
             options=chrome_options,
         )
 

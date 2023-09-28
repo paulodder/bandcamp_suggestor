@@ -8,3 +8,4 @@ mp3/tmp/
 *bkradio*.mp3
 timestamp.json
 scripts/generate_some_media.py
+tags.json
