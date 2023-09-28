@@ -23,7 +23,7 @@ sudo "${PROJECT_DIR}bandcamp/bin/python3 -m pip install -r ${PROJECT_DIR}require
 # Run the script
 echo "** Running bandcamp_suggestor"
 say "Starting radio"
-sudo "${PROJECT_DIR}bandcamp/bin/python3" "${PROJECT_DIR}scripts/play_recommendation.py" &
+sudo "${PROJECT_DIR}bandcamp/bin/python3" "${PROJECT_DIR}scripts/play_infinite_radio.py" &
 
 # To stop the radio from ssh:
 # ps ax | grep bandcamp_suggestor to find the process_id

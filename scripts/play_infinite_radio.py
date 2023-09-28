@@ -5,7 +5,6 @@ from functools import partial
 from decouple import config
 from pathlib import Path
 from multiprocessing import Process, Queue
-from src.media_producer import MediaProducer
 from src.radio_generator import RadioGenerator
 from src.telegram_notifier import TelegramNotifier
 from src.time_manager import TimeManager
@@ -45,9 +44,10 @@ class RadioPlayer:
         check_queue_task = asyncio.create_task(self.check_queue_and_enqueue())
 
         # Generate intro speech
-        if self.tm.time_difference_in_minutes() > 30:
-            intro_speech_fpath = self.rg.generate_intro_speech()
-            self.mp.enqueue(intro_speech_fpath)
+        intro_speech_fpath = self.rg.generate_intro_speech(
+            self.tm.time_difference_in_minutes()
+        )
+        self.mp.enqueue(intro_speech_fpath)
 
         # Initialize radio
         self.init_radio()
@@ -222,7 +222,7 @@ def run_radio(bc_user, mp_queue):
 def error_callback(e):
     print(f"An error occurred: {e}")
     mp = MediaPlayer()
-    mp.play_from_url(config("PROJECT_DIR") + "mp3/error.mp3")
+    mp.play_from_url(config("PROJECT_DIR") + "mp3/offline_mode.mp3")
     mp.await_end_blocking()
 
 
@@ -234,6 +234,7 @@ def no_internet(e):
 
 if __name__ == "__main__":
     bc_user = None  # can be overwritten here (enter string)
+    bc_user = "adriaanscholtens"
 
     if not connection_is_active():
         print("ERROR: No internet connection was established")

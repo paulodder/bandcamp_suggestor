@@ -14,6 +14,12 @@ from src.utils import (
     save_json,
     change_suffix,
 )
+from src.constants import (
+    first_time_greeting,
+    short_continue,
+    mid_continue,
+    long_continue,
+)
 from src.song_filter import SongFilter
 
 
@@ -92,13 +98,24 @@ class RadioGenerator:
         # clear_directory_recursive(self.tmp_dir, include_topdir=True)
         return tracklist, all_times
 
-    def generate_intro_speech(self):
+    def generate_intro_speech(self, min_since_last_use=None):
         intro_speech_fpath = generate_paths(self.tmp_dir, ["intro-speech"])[
             "intro-speech"
         ]
 
+        if min_since_last_use is None:
+            text = f"This is {self.bc_user}'s boomkètèl radio for the {get_date_str()}."
+        elif min_since_last_use == -1:
+            text = first_time_greeting
+        elif min_since_last_use < 20:
+            text = random.choice(mid_continue)
+        elif min_since_last_use > 21600:
+            text = random.choice(long_continue)
+        else:
+            text = random.choice(mid_continue)
+
         self.mp.text_to_mp3(
-            f"This is {self.bc_user}'s boomkètèl radio for the {get_date_str()}",
+            text,
             intro_speech_fpath,
         )
         return intro_speech_fpath

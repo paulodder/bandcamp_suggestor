@@ -4,6 +4,7 @@
 mp3/slices/
 mp3/tmp/
 /logs/
-/mp3/voice.mp3
 *.DS_Store
 *bkradio*.mp3
+timestamp.json
+scripts/generate_some_media.py

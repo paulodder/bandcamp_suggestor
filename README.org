@@ -2,8 +2,8 @@
 #+TITLE: README
 #+AUTHOR: Paul Lodder and Luc Weytingh
 * intro
-Code to suggest a track based on Bandcamp user's wishlist and
-https://bc-explorer.app
+Code to play a radio based on a Bandcamp user's wishlist and
+https://bc-explorer.app.
 * setting up
 1. Create a =virtualenv= (I used Python 3.9) and activate it
    #+BEGIN_SRC sh
@@ -43,9 +43,9 @@ bc_suggestor.generate_suggestions()
 will scrape the collection and wishlist items from bandcamp, use a randomly picked one to feed
 to bc-explorer, and then returns suggestions from bc-explorer.
 
-To run a radio based on your bandcamp wishlist locally run the following:
+To play the radio based on your bandcamp wishlist locally run the following:
 #+BEGIN_SRC sh
-python scripts/play_recommendation.py
+python scripts/play_infinite_radio.py
 #+END_SRC
 
 To run the radio on raspberry pi startup do the following:

@@ -14,7 +14,7 @@ class TimeManager:
                 time_json = json.load(f)
                 self.last_used = time_json.get("last_used", 0)
         except FileNotFoundError:
-            self.last_used = 0
+            self.last_used = -1
 
     def update_time(self):
         """Updates the 'last_used' time and saves it to a JSON file."""
@@ -33,6 +33,8 @@ class TimeManager:
 
     def time_difference_in_minutes(self):
         """Calculates the time difference between now and the last used time, in minutes."""
+        if self.last_used == 0:
+            return 0
         current_time = int(time.time())
         time_difference = current_time - self.last_used
         return time_difference // 60
