@@ -43,7 +43,6 @@ subjects = [
     "ranga",
     "tucker",
     "stubby",
-    "anklebiter",
     "bluey",
     "dag",
     "pommy",

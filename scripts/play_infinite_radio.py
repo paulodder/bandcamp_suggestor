@@ -121,16 +121,7 @@ class RadioPlayer:
         # TODO: Include genres
         print("* sending track to phone *")
         track_info = self.mp.get_info()
-        await self.send_message_to_phone(track_info)
-
-    async def send_message_to_phone(self, message):
-        for _ in range(3):  # try 3 times
-            try:
-                await self.tn.send_message(message)
-                break
-            except Exception as e:  # replace Exception with the specific exception you're handling
-                print(f"exception while sending: {e}. retrying...")
-                await asyncio.sleep(5)  # wait for 5 seconds before retrying
+        await self.tn.send_message(track_info)
 
     async def check_queue_and_enqueue(self):
         while True:

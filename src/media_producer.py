@@ -38,7 +38,7 @@ class MediaProducer:
         """
         # Load the audio files
         music = AudioSegment.from_file(music_path)
-        speech = AudioSegment.from_file(speech_path)
+        speech = AudioSegment.from_file(speech_path) + 2.0
 
         # Get the length of the speech in milliseconds
         music_length = len(music)

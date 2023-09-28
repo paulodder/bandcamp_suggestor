@@ -9,12 +9,18 @@ class TelegramNotifier:
         self.chat_id = chat_id
 
     async def send_message(self, message):
-        await self.bot.send_message(
-            chat_id=self.chat_id,
-            text=message,
-            parse_mode="HTML",
-            disable_web_page_preview=True,
-        )
+        for _ in range(3):  # try 3 times
+            try:
+                await self.bot.send_message(
+                    chat_id=self.chat_id,
+                    text=message,
+                    parse_mode="HTML",
+                    disable_web_page_preview=True,
+                )
+                break
+            except Exception as e:
+                print(f"exception while sending: {e}. retrying...")
+                await asyncio.sleep(5)  # wait for 5 seconds before retrying
 
     async def send_audio(self, audio_file_path):
         with open(audio_file_path, "rb") as audio_file:
