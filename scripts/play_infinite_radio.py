@@ -233,8 +233,7 @@ def no_internet(e):
 
 
 if __name__ == "__main__":
-    # bc_user = None
-    bc_user = "adriaanscholtens"  # Override
+    bc_user = None  # can be overwritten here (enter string)
 
     if not connection_is_active():
         print("ERROR: No internet connection was established")
