@@ -135,7 +135,7 @@ class RadioGenerator:
         src_artist_track_str = f"{source_band} - {source_track}"
 
         # tracklist_msg = f'{"based on: ":<10}<a href="{source_url}">{source_track} - {source_band}</a>\n'
-        song_infos = []
+        # song_infos = []
         tracklist = []
 
         comb_fpaths = []
@@ -168,12 +168,12 @@ class RadioGenerator:
 
         j = 0
         while j < n_recs_per_song:
-            song_info = {
-                "based_on": {
-                    "artist_track": src_artist_track_str,
-                    "url": source_url,
-                }
-            }
+            # song_info = {
+            #     "based_on": {
+            #         "artist_track": src_artist_track_str,
+            #         "url": source_url,
+            #     }
+            # }
             bc_info = self.bc.fetch_info_from_bancamp_url(bandcamp_urls[j])
 
             if not self.tag_filter.is_song_allowed(bc_info["tags"]):
@@ -215,16 +215,16 @@ class RadioGenerator:
 
             comb_fpaths.append(fpaths["combined"])
 
-            song_info["time_start"].append(round(time))
+            # song_info["time_start"].append(round(time))
             times.append(round(time))
             song_length = self._get_mp3_duration(fpaths["combined"])
             time += song_length
 
-            song_info["artist_track"] = f"{artists[j]} - {tracks[j]}"
-            song_info["url"] = bandcamp_urls[j]
-            song_info[
-                "message"
-            ] = f'{song_info["artist_track"]}\n<a href="{song_info["url"]}">bandcamp link</a>'
+            # song_info["artist_track"] = f"{artists[j]} - {tracks[j]}"
+            # song_info["url"] = bandcamp_urls[j]
+            # song_info[
+            #     "message"
+            # ] = f'{song_info["artist_track"]}\n<a href="{song_info["url"]}">bandcamp link</a>'
 
             tracklist.append(
                 f'{artists[j]} - {tracks[j]}\n<a href="{bandcamp_urls[j]}">bandcamp link</a>'
@@ -235,7 +235,7 @@ class RadioGenerator:
             # if bc_info["tags"]:
             # print(f"{'':<4}{', '.join(bc_info['tags'])}")
 
-            song_infos.append(song_info)
+            # song_infos.append(song_info)
             j += 1
 
         slice_fpath = generate_paths(self.tmp_dir, ["slice"])["slice"]
