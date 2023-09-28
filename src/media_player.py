@@ -108,10 +108,11 @@ class MediaPlayer:
     def play_next_in_queue(self):
         """Immediately stop current playback and play the next item in queue."""
         if self.queue:
-            if self.on_media_end:
+            if self.on_media_end is not None:
                 self.on_media_end(self.playing)
             next_url = self.queue.pop(0)
-            self.on_media_start()
+            if self.on_media_start is not None:
+                self.on_media_start()
             self.play_from_url(next_url)
             print("queued:", len(self.queue), "slices")
             return
