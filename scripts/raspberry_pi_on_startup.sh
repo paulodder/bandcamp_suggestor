@@ -14,7 +14,7 @@ sudo ${PROJECT_DIR}bandcamp/bin/python3 ${PROJECT_DIR}scripts/wait_for_network.p
 
 # Run the script
 echo "** Running bandcamp_suggestor"
-say "Starting radio"
+# say "Starting radio"
 sudo "${PROJECT_DIR}bandcamp/bin/python3" "${PROJECT_DIR}scripts/play_infinite_radio.py" &
 
 # To stop the radio from ssh:
