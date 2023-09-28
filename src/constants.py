@@ -46,6 +46,7 @@ subjects = [
     "bluey",
     "dag",
     "pommy",
+    "shawdee",
 ]
 
 mid_continue = [
