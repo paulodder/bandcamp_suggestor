@@ -12,9 +12,7 @@ class MediaProducer:
         return fpath
 
     def url_to_mp3(self, url, fpath):
-        # Use the executor for the blocking call
         response = requests.get(url)
-
         with open(fpath, "wb") as f:
             f.write(response.content)
         return fpath
@@ -68,63 +66,12 @@ class MediaProducer:
         if clip:
             output = speech.overlay(during_speech)
         else:
-            output = before_speech + speech.overlay(during_speech) + after_speech
+            output = (
+                before_speech + speech.overlay(during_speech) + after_speech
+            )
         # Save the result
         output.export(output_path, format="mp3")
         return output_path
-
-    # def combine_music_and_music_and_speech(
-    #     self,
-    #     music_path,
-    #     music_path2,
-    #     speech_path,
-    #     output_path,
-    #     duck_db=-10.0,
-    #     overlap_length=5,
-    # ):
-    #     """
-    #     Combine music with speech and duck the music so the message is clear
-    #     args:
-    #     - music_path: mp3 of music
-    #     - speech_path: mp3 of speech
-    #     - output_fpath: mp3 of combined output
-    #     - duck_db: amount of db to duck the music
-    #     - position: where to place text in song ["start", "middle", "end"]
-    #     - clip: whether to return only the slice where speech overlays the music
-    #     """
-    #     # Load the audio files
-    #     music = AudioSegment.from_file(music_path)
-    #     music2 = AudioSegment.from_file(music_path)
-    #     speech = AudioSegment.from_file(speech_path)
-
-    #     # Get the length of the speech in milliseconds
-    #     music_length = len(music)
-    #     music_middle = music_length // 2
-    #     speech_length = len(speech)
-
-    #     # Split the music into two parts: during and after the speech
-    #     before_speech = music[:-overlap_length]
-    #     if speech_length < overlap_length:
-    #         during_speech1 = music[-overlap_length:]
-    #         after_speech = music2
-    #     else:
-    #         during_speech1 = music[-overlap_length:]
-    #         during_speech2 = music2[:overlap_length - overlap_length]
-    #         after_speech = music2[speech_length - overlap_length:]
-
-    #     # Lower the volume of the music during the speech
-    #     during_speech = during_speech + duck_db
-
-    #     # Overlay the speech onto the 'during' music, then append 'after' music
-    #     if clip:
-    #         output = speech.overlay(during_speech)
-    #     else:
-    #         output = (
-    #             before_speech + speech.overlay(during_speech) + after_speech
-    #         )
-    #     # Save the result
-    #     output.export(output_path, format="mp3")
-    #     return output_path
 
     def merge_mp3s(self, mp3_paths, output_fpath):
         "Merge multiple mp3s sequentially"
